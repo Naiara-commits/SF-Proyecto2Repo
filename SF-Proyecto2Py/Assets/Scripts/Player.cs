@@ -1,12 +1,10 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+public class Player : MonoBehaviour
 {
 
     [SerializeField] private float movSpeed;
-    [SerializeField] private float runSpeed;
     [SerializeField] private float rotSpeed;
     [SerializeField] private float jumpHeight = 1.2f;
     [SerializeField] private float groundCheckDistance = 0.2f;
@@ -14,19 +12,16 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float maxPitch = 80f;
     [SerializeField] private Transform pCamera;
     public InputActionAsset InpActions;
-    //ActionHub hub;
-    Animator animator;
 
     private InputAction Move;
     private InputAction Look;
     private InputAction Jump;
-    private InputAction Run;
 
     private Vector2 mMove;
     private Vector2 mLook;
 
     private Rigidbody rb;
-    private CharacterController cc;
+    private BoxCollider col;
     private bool isController = false;
     private float pendingYaw;
     private float pitch;
@@ -43,15 +38,13 @@ public class PlayerController : MonoBehaviour
         Move = InputSystem.actions.FindAction("Move");
         Look = InputSystem.actions.FindAction("Look");
         Jump = InputSystem.actions.FindAction("Jump");
-        Run = InputSystem.actions.FindAction("Run");
 
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        cc = GetComponent<CharacterController>();
-        animator = GetComponent<Animator>();
+        col = GetComponent<BoxCollider>();
         InpActions.FindActionMap("Player").Enable();
         InputSystem.onActionChange += OnActionChange;
         Cursor.lockState = CursorLockMode.Locked;
@@ -94,7 +87,6 @@ public class PlayerController : MonoBehaviour
         Walk();
         Rotate();
         Salto();
-        Correr();
     }
     public void Walk()
     {
@@ -102,13 +94,6 @@ public class PlayerController : MonoBehaviour
         rb.MovePosition(rb.position + move);
 
     }
-    public void Correr()
-    {
-        Vector3 move = (transform.forward * mMove.y + transform.right * mMove.x) * runSpeed * Time.fixedDeltaTime;
-        rb.MovePosition(rb.position + move);
-
-    }
-
     public void Rotate()
     {
         rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, pendingYaw, 0f));
@@ -117,7 +102,7 @@ public class PlayerController : MonoBehaviour
     }
     private bool IsGrounded()
     {
-        Bounds b = cc.bounds;
+        Bounds b = col.bounds;
         Vector3 halfExtents = new Vector3(b.extents.x * 0.9f, 0.05f, b.extents.z * 0.9f);
 
         Vector3 origin = new Vector3(b.center.x, b.min.y + 0.1f, b.center.z);
@@ -138,9 +123,5 @@ public class PlayerController : MonoBehaviour
             rb.linearVelocity = v;
         }
         jumpRequested = false;
-    }
-    public void Aterrizado()
-    {
-
     }
 }
